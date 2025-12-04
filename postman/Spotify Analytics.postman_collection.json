@@ -1,0 +1,138 @@
+{
+	"info": {
+		"_postman_id": "4c030de1-bc5d-4e2a-99cd-5c000c7fbe93",
+		"name": "Spotify Analytics",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49374887",
+		"_collection_link": "https://callumclarke65-af53a6b3-4489667.postman.co/workspace/Callum's-Workspace~079ee257-1f8b-4cf0-8c2f-f5d33ae46138/collection/49374887-4c030de1-bc5d-4e2a-99cd-5c000c7fbe93?action=share&source=collection_link&creator=49374887"
+	},
+	"item": [
+		{
+			"name": "/me",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body contains the field 'display_name'\", function () {\r",
+							"    pm.expect(jsonData).to.have.property('display_name');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body contains the field 'uri'\", function () {\r",
+							"    pm.expect(jsonData).to.have.property('uri');\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/me",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"me"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "scope",
+				"value": "user-read-email user-read-private",
+				"type": "string"
+			},
+			{
+				"key": "clientSecret",
+				"value": "{{spotifyClientSecret}}",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "{{spotifyClientId}}",
+				"type": "string"
+			},
+			{
+				"key": "accessTokenUrl",
+				"value": "https://accounts.spotify.com/api/token",
+				"type": "string"
+			},
+			{
+				"key": "authUrl",
+				"value": "https://accounts.spotify.com/authorize",
+				"type": "string"
+			},
+			{
+				"key": "redirect_uri",
+				"value": "https://nonemancipative-nonexhaustive-lucius.ngrok-free.dev/callback",
+				"type": "string"
+			},
+			{
+				"key": "useBrowser",
+				"value": false,
+				"type": "boolean"
+			},
+			{
+				"key": "grant_type",
+				"value": "authorization_code",
+				"type": "string"
+			},
+			{
+				"key": "tokenName",
+				"value": "Spotify Auth",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": ""
+		}
+	]
+}

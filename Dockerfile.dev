@@ -1,0 +1,10 @@
+# Dockerfile.dev
+FROM golang:1.25
+
+WORKDIR /app
+
+# Install air inside the container
+RUN go install github.com/air-verse/air@latest
+
+# default command: run air
+CMD ["air"]

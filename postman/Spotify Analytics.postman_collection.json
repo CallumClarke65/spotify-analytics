@@ -38,12 +38,72 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{baseUrl}}/me",
+					"raw": "{{baseUrl}}/songsFromPlaylists/2025",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
-						"me"
+						"songsFromPlaylists",
+						"2025"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/songsFromPlaylists/2025",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body contains only tracks released in 2025\", function () {\r",
+							"    jsonData.forEach(track => {\r",
+							"        pm.expect(track.release_date.startsWith('2025')).to.be.true;\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body contains full details of each track\", function () {\r",
+							"    jsonData.forEach(track => {\r",
+							"        pm.expect(track.track_id).to.not.be.undefined;\r",
+							"        pm.expect(track.track_name).to.not.be.undefined;\r",
+							"        pm.expect(track.artists).to.not.be.undefined;\r",
+							"        pm.expect(track.artists.length).to.be.greaterThan(0);\r",
+							"        pm.expect(track.album_name).to.not.be.undefined;\r",
+							"        pm.expect(track.release_date).to.not.be.undefined;\r",
+							"    })\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body contains no duplicate tracks\", function () {  \r",
+							"    let trackIds = jsonData.map(track => track.track_id);\r",
+							"    let uniqueTrackIds = new Set(trackIds);\r",
+							"    \r",
+							"    pm.expect(uniqueTrackIds.size).to.eql(trackIds.length);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/songsFromPlaylists/2025",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"songsFromPlaylists",
+						"2025"
 					]
 				}
 			},

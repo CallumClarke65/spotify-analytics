@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
+	"github.com/CallumClarke65/spotify-analytics/internal/services"
 	"github.com/CallumClarke65/spotify-analytics/internal/spotifyauth"
 	"github.com/go-chi/chi/v5"
 	"github.com/zmb3/spotify/v2"
@@ -31,7 +31,7 @@ func SongsOnPlaylistsFromYear(w http.ResponseWriter, r *http.Request) {
 	client := spotifyauth.ClientFromContext(r.Context())
 
 	var allPlaylists []spotify.SimplePlaylist
-	allPlaylists, err = GetAllUserPlaylists(r.Context(), client)
+	allPlaylists, err = services.GetAllUserPlaylists(r.Context(), client)
 
 	if err != nil {
 		http.Error(w, "Failed to fetch playlists", http.StatusInternalServerError)
@@ -40,7 +40,7 @@ func SongsOnPlaylistsFromYear(w http.ResponseWriter, r *http.Request) {
 
 	trackMap := make(map[string]TrackInfo)
 	for _, p := range allPlaylists {
-		playlistItems, err := GetAllPlaylistTracks(r.Context(), client, p)
+		playlistItems, err := services.GetAllPlaylistTracks(r.Context(), client, p)
 		if err != nil {
 			zap.L().Warn("Failed to fetch tracks for playlist", zap.String("playlist_id", string(p.ID)), zap.Error(err))
 			continue
@@ -84,58 +84,4 @@ func SongsOnPlaylistsFromYear(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
-}
-
-func GetAllUserPlaylists(ctx context.Context, client *spotify.Client) ([]spotify.SimplePlaylist, error) {
-	var allPlaylists []spotify.SimplePlaylist
-
-	page, err := client.CurrentUsersPlaylists(ctx)
-	if err != nil {
-		return nil, err
-	}
-	allPlaylists = append(allPlaylists, page.Playlists...)
-
-	for {
-		err := client.NextPage(ctx, page)
-		if err != nil {
-			if err == spotify.ErrNoMorePages {
-				break
-			}
-			zap.L().Warn("Failed to fetch next page of playlists", zap.Error(err))
-			break
-		}
-		allPlaylists = append(allPlaylists, page.Playlists...)
-	}
-
-	zap.L().Info("Fetched all user playlists", zap.Int("count", len(allPlaylists)))
-	return allPlaylists, nil
-}
-
-func GetAllPlaylistTracks(ctx context.Context, client *spotify.Client, playlist spotify.SimplePlaylist) ([]spotify.PlaylistItem, error) {
-	var allTracks []spotify.PlaylistItem
-
-	page, err := client.GetPlaylistItems(ctx, playlist.ID)
-	if err != nil {
-		return nil, err
-	}
-	allTracks = append(allTracks, page.Items...)
-
-	for {
-		err := client.NextPage(ctx, page)
-		if err != nil {
-			if err == spotify.ErrNoMorePages {
-				break
-			}
-			zap.L().Warn("Failed to fetch next page of tracks", zap.Error(err))
-			break
-		}
-		allTracks = append(allTracks, page.Items...)
-	}
-
-	zap.L().Info(
-		"Fetched all tracks from playlist",
-		zap.String("playlist_id", string(playlist.ID)),
-		zap.Int("count", len(allTracks)),
-	)
-	return allTracks, nil
 }

@@ -13,12 +13,15 @@ import (
 	"golang.org/x/oauth2"
 )
 
+type ctxKey string
+
+const spotifyClientKey ctxKey = "spotifyClient"
+
 var (
 	authenticator *spotifyauthpkg.Authenticator
 	state         = "random-state" // in production, generate per session
 )
 
-// Init loads .env and sets up Spotify authenticator
 func Init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -37,13 +40,11 @@ func Init() {
 	)
 }
 
-// LoginHandler redirects the user to Spotify's OAuth page
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	url := authenticator.AuthURL(state)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
-// CallbackHandler exchanges code for token and returns it as JSON
 func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	rState := r.URL.Query().Get("state")
 	if rState != state {
@@ -57,7 +58,6 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return the token as JSON so Postman can store it
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"access_token":  token.AccessToken,
@@ -67,9 +67,9 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Middleware to require a Bearer token and provide a Spotify client
-func RequireSpotifyAuth(next func(http.ResponseWriter, *http.Request, *spotify.Client)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func SpotifyAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		bearer := r.Header.Get("Authorization")
 		if bearer == "" || len(bearer) < 7 || bearer[:7] != "Bearer " {
 			http.Error(w, "Missing or invalid Authorization header", http.StatusUnauthorized)
@@ -80,7 +80,17 @@ func RequireSpotifyAuth(next func(http.ResponseWriter, *http.Request, *spotify.C
 			AccessToken: bearer[7:], // strip "Bearer "
 		}
 
-		client := spotify.New(authenticator.Client(context.Background(), token))
-		next(w, r, client)
-	}
+		// Build Spotify client
+		client := spotify.New(authenticator.Client(r.Context(), token))
+
+		// Attach client to context
+		ctx := context.WithValue(r.Context(), spotifyClientKey, client)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func ClientFromContext(ctx context.Context) *spotify.Client {
+	client, _ := ctx.Value(spotifyClientKey).(*spotify.Client)
+	return client
 }

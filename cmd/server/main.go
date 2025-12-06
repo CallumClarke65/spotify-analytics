@@ -73,6 +73,7 @@ func main() {
 
 		r.Post("/year/{year}/songsFromPlaylists", yearHandlers.SongsOnPlaylistsFromYear)
 		r.Post("/year/{year}/likedSongs", yearHandlers.LikedSongsFromYear)
+		r.Post("/year/{year}/suggestions", yearHandlers.SuggestionsFromYear)
 	})
 
 	logger.Info("Server started",

@@ -15,11 +15,11 @@ import (
 	"go.uber.org/zap"
 )
 
-type LikedSongsFromYearRequestBody struct {
+type SuggestionsFromYearRequestBody struct {
 	SaveObject bool `json:"saveObject"`
 }
 
-func LikedSongsFromYear(w http.ResponseWriter, r *http.Request) {
+func SuggestionsFromYear(w http.ResponseWriter, r *http.Request) {
 	yearStr := chi.URLParam(r, "year")
 	year, err := strconv.Atoi(yearStr)
 	if err != nil {
@@ -27,7 +27,7 @@ func LikedSongsFromYear(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body LikedSongsFromYearRequestBody
+	var body SuggestionsFromYearRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
@@ -35,16 +35,16 @@ func LikedSongsFromYear(w http.ResponseWriter, r *http.Request) {
 
 	client := spotifyauth.ClientFromContext(r.Context())
 
-	var userSavedTracks []spotify.FullTrack
-	userSavedTracks, err = services.GetAllUserSavedTracks(r.Context(), client)
+	var suggestedTracks []spotify.FullTrack
+	suggestedTracks, err = services.GetSuggestedTracksFromYear(r.Context(), client, year)
 
 	if err != nil {
-		http.Error(w, "Failed to fetch playlists", http.StatusInternalServerError)
+		http.Error(w, "Failed to fetch suggested tracks", http.StatusInternalServerError)
 		return
 	}
 
 	trackMap := make(map[string]services.TrackInfo)
-	tracksFromYear := services.FilterTracksFromYear(userSavedTracks, year)
+	tracksFromYear := services.FilterTracksFromYear(suggestedTracks, year)
 	for _, t := range tracksFromYear {
 		info := services.GetShortTrackDetails(t)
 		trackMap[info.TrackID] = info
@@ -53,11 +53,11 @@ func LikedSongsFromYear(w http.ResponseWriter, r *http.Request) {
 	if body.SaveObject {
 		safeUsername := strings.Replace(spotifyauth.UserNameFromContext(r.Context()), " ", "_", -1)
 
-		filename := fmt.Sprintf("liked_songs_%s_%s_%s", yearStr, safeUsername, time.Now().Format(time.RFC3339))
+		filename := fmt.Sprintf("suggested_songs_%s_%s_%s", yearStr, safeUsername, time.Now().Format(time.RFC3339))
 		err = services.WriteJsonObjectToFile(trackMap, filename)
 
 		if err != nil {
-			zap.L().Error("Failed to save liked songs object", zap.Error(err))
+			zap.L().Error("Failed to save suggested songs object", zap.Error(err))
 			http.Error(w, "Failed to save object", http.StatusInternalServerError)
 			return
 		}

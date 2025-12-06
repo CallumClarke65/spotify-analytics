@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"strings"
 
 	"github.com/zmb3/spotify/v2"
 	"go.uber.org/zap"
@@ -32,15 +33,65 @@ func GetAllUserPlaylists(ctx context.Context, client *spotify.Client) ([]spotify
 	return allPlaylists, nil
 }
 
-func GetAllPlaylistTracks(ctx context.Context, client *spotify.Client, playlist spotify.SimplePlaylist) ([]spotify.PlaylistItem, error) {
-	var allTracks []spotify.PlaylistItem
+func GetFilteredUserPlaylists(
+	ctx context.Context,
+	client *spotify.Client,
+	ignoredPlaylistNameSubstrings []string,
+) ([]spotify.SimplePlaylist, error) {
+
+	lowerIgnored := make([]string, len(ignoredPlaylistNameSubstrings))
+	for i, s := range ignoredPlaylistNameSubstrings {
+		lowerIgnored[i] = strings.ToLower(s)
+	}
+	zap.L().Debug("Ignoring playlists with substrings", zap.Strings("substrings", lowerIgnored))
+
+	allPlaylists, err := GetAllUserPlaylists(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+
+	var filtered []spotify.SimplePlaylist
+
+	for _, p := range allPlaylists {
+
+		skip := false
+		for _, sub := range lowerIgnored {
+			if strings.Contains(strings.ToLower(p.Name), sub) {
+				skip = true
+				break
+			}
+		}
+
+		if skip {
+			zap.L().Debug("Skipping playlist", zap.String("name", p.Name))
+			continue
+		}
+
+		filtered = append(filtered, p)
+	}
+
+	return filtered, nil
+}
+
+func GetAllPlaylistTracks(
+	ctx context.Context,
+	client *spotify.Client,
+	playlist spotify.SimplePlaylist,
+) ([]spotify.FullTrack, error) {
+
+	var allTracks []spotify.FullTrack
 
 	page, err := client.GetPlaylistItems(ctx, playlist.ID)
 	if err != nil {
 		return nil, err
 	}
-	allTracks = append(allTracks, page.Items...)
 
+	// Extract FullTrack from this page
+	for _, item := range page.Items {
+		allTracks = append(allTracks, *item.Track.Track)
+	}
+
+	// Fetch remaining pages
 	for {
 		err := client.NextPage(ctx, page)
 		if err != nil {
@@ -50,13 +101,17 @@ func GetAllPlaylistTracks(ctx context.Context, client *spotify.Client, playlist 
 			zap.L().Warn("Failed to fetch next page of tracks", zap.Error(err))
 			break
 		}
-		allTracks = append(allTracks, page.Items...)
+
+		for _, item := range page.Items {
+			allTracks = append(allTracks, *item.Track.Track)
+		}
 	}
 
 	zap.L().Info(
-		"Fetched all tracks from playlist",
-		zap.String("playlist_name", string(playlist.Name)),
+		"Fetched all FULL tracks from playlist",
+		zap.String("playlist_name", playlist.Name),
 		zap.Int("count", len(allTracks)),
 	)
+
 	return allTracks, nil
 }

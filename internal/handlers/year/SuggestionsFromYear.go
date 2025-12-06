@@ -1,68 +1,28 @@
 package yearHandlers
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"net/http"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/CallumClarke65/spotify-analytics/internal/services"
-	"github.com/CallumClarke65/spotify-analytics/internal/spotifyauth"
 	"github.com/go-chi/chi/v5"
 	"github.com/zmb3/spotify/v2"
-	"go.uber.org/zap"
 )
 
 type SuggestionsFromYearRequestBody struct {
 	SaveObject bool `json:"saveObject"`
 }
 
-func SuggestionsFromYear(w http.ResponseWriter, r *http.Request) {
-	yearStr := chi.URLParam(r, "year")
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		http.Error(w, "Invalid year", http.StatusBadRequest)
-		return
-	}
-
-	var body SuggestionsFromYearRequestBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	client := spotifyauth.ClientFromContext(r.Context())
-
-	var suggestedTracks []spotify.FullTrack
-	suggestedTracks, err = services.GetSuggestedTracksFromYear(r.Context(), client, year)
-
-	if err != nil {
-		http.Error(w, "Failed to fetch suggested tracks", http.StatusInternalServerError)
-		return
-	}
-
-	trackMap := make(map[string]services.TrackInfo)
-	tracksFromYear := services.FilterTracksFromYear(suggestedTracks, year)
-	for _, t := range tracksFromYear {
-		info := services.GetShortTrackDetails(t)
-		trackMap[info.TrackID] = info
-	}
-
-	if body.SaveObject {
-		safeUsername := strings.Replace(spotifyauth.UserNameFromContext(r.Context()), " ", "_", -1)
-
-		filename := fmt.Sprintf("suggested_songs_%s_%s_%s", yearStr, safeUsername, time.Now().Format(time.RFC3339))
-		err = services.WriteJsonObjectToFile(trackMap, filename)
-
-		if err != nil {
-			zap.L().Error("Failed to save suggested songs object", zap.Error(err))
-			http.Error(w, "Failed to save object", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(trackMap)
+func (b SuggestionsFromYearRequestBody) GetSaveObject() bool {
+	return b.SaveObject
 }
+
+var SuggestionsFromYear = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	yearStr := chi.URLParam(r, "year")
+	year, _ := strconv.Atoi(yearStr)
+
+	BaseYearHandler(func(ctx context.Context, client *spotify.Client, body SuggestionsFromYearRequestBody) ([]spotify.FullTrack, error) {
+		return services.GetSuggestedTracksFromYear(ctx, client, year)
+	})(w, r)
+})

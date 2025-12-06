@@ -94,3 +94,16 @@ func ClientFromContext(ctx context.Context) *spotify.Client {
 	client, _ := ctx.Value(spotifyClientKey).(*spotify.Client)
 	return client
 }
+
+func UserNameFromContext(ctx context.Context) string {
+	client := ClientFromContext(ctx)
+	if client == nil {
+		return ""
+	}
+	user, err := client.CurrentUser(ctx)
+	if err != nil {
+		return ""
+	}
+
+	return user.DisplayName
+}

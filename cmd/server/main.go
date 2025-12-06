@@ -69,7 +69,7 @@ func main() {
 		r.Use(spotifyauth.SpotifyAuthMiddleware)
 
 		r.Get("/me", handlers.Me)
-		r.Get("/songsFromPlaylists/{year}", handlers.SongsOnPlaylistsFromYear)
+		r.Post("/songsFromPlaylists/{year}", handlers.SongsOnPlaylistsFromYear)
 	})
 
 	logger.Info("Server started",

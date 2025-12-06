@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -45,19 +46,23 @@ func BaseYearHandler[B HasSaveObject](fetch TrackFetcher[B]) http.HandlerFunc {
 
 		filtered := services.FilterTracksFromYear(tracks, year)
 
-		trackMap := make(map[string]services.TrackInfo)
+		var result []services.TrackInfo
 		for _, t := range filtered {
 			info := services.GetShortTrackDetails(t)
-			trackMap[info.TrackID] = info
+			result = append(result, info)
 		}
+
+		sort.Slice(result, func(i, j int) bool {
+			return result[i].Popularity > result[j].Popularity
+		})
 
 		if body.GetSaveObject() {
 			username := strings.ReplaceAll(spotifyauth.UserNameFromContext(r.Context()), " ", "_")
 			filename := fmt.Sprintf("songs_%d_%s_%s", year, username, time.Now().Format(time.RFC3339))
-			_ = services.WriteJsonObjectToFile(trackMap, filename)
+			_ = services.WriteJsonObjectToFile(result, filename)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(trackMap)
+		json.NewEncoder(w).Encode(result)
 	}
 }

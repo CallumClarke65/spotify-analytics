@@ -108,7 +108,7 @@ func GetAllPlaylistTracks(
 	}
 
 	zap.L().Info(
-		"Fetched all FULL tracks from playlist",
+		"Fetched all tracks from playlist",
 		zap.String("playlist_name", playlist.Name),
 		zap.Int("count", len(allTracks)),
 	)

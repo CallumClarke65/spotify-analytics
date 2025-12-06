@@ -36,7 +36,15 @@ func Init() {
 		spotifyauthpkg.WithClientID(clientID),
 		spotifyauthpkg.WithClientSecret(clientSecret),
 		spotifyauthpkg.WithRedirectURL(redirectURL),
-		spotifyauthpkg.WithScopes(spotifyauthpkg.ScopeUserReadEmail, spotifyauthpkg.ScopeUserReadPrivate),
+		spotifyauthpkg.WithScopes(
+			spotifyauthpkg.ScopeUserReadEmail,
+			spotifyauthpkg.ScopeUserReadPrivate,
+			spotifyauthpkg.ScopePlaylistModifyPrivate,
+			spotifyauthpkg.ScopePlaylistModifyPublic,
+			spotifyauthpkg.ScopePlaylistReadPrivate,
+			spotifyauthpkg.ScopeUserLibraryRead,
+			spotifyauthpkg.ScopeUserTopRead,
+		),
 	)
 }
 
@@ -106,4 +114,17 @@ func UserNameFromContext(ctx context.Context) string {
 	}
 
 	return user.DisplayName
+}
+
+func UserIDFromContext(ctx context.Context) string {
+	client := ClientFromContext(ctx)
+	if client == nil {
+		return ""
+	}
+	user, err := client.CurrentUser(ctx)
+	if err != nil {
+		return ""
+	}
+
+	return user.ID
 }

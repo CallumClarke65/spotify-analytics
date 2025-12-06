@@ -1,9 +1,11 @@
 package services
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/zmb3/spotify/v2"
+	"go.uber.org/zap"
 )
 
 type TrackInfo struct {
@@ -56,4 +58,35 @@ func GetShortTrackDetails(track spotify.FullTrack) TrackInfo {
 		ReleaseDate: track.Album.ReleaseDate,
 		Popularity:  int(track.Popularity),
 	}
+}
+
+func GetAllUserSavedTracks(ctx context.Context, client *spotify.Client) ([]spotify.FullTrack, error) {
+	var allTracks []spotify.FullTrack
+
+	page, err := client.CurrentUsersTracks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, track := range page.Tracks {
+		allTracks = append(allTracks, track.FullTrack)
+	}
+
+	for {
+		err := client.NextPage(ctx, page)
+		if err != nil {
+			if err == spotify.ErrNoMorePages {
+				break
+			}
+			zap.L().Warn("Failed to fetch next page of user saved tracks", zap.Error(err))
+			break
+		}
+		for _, track := range page.Tracks {
+			allTracks = append(allTracks, track.FullTrack)
+		}
+	}
+
+	zap.L().Info("Fetched all user saved tracks", zap.Int("count", len(allTracks)))
+
+	return allTracks, nil
 }

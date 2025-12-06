@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/CallumClarke65/spotify-analytics/internal/handlers"
+	yearHandlers "github.com/CallumClarke65/spotify-analytics/internal/handlers/year"
 	"github.com/CallumClarke65/spotify-analytics/internal/spotifyauth"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -69,7 +70,9 @@ func main() {
 		r.Use(spotifyauth.SpotifyAuthMiddleware)
 
 		r.Get("/me", handlers.Me)
-		r.Post("/songsFromPlaylists/{year}", handlers.SongsOnPlaylistsFromYear)
+
+		r.Post("/year/{year}/songsFromPlaylists", yearHandlers.SongsOnPlaylistsFromYear)
+		r.Post("/year/{year}/likedSongs", yearHandlers.LikedSongsFromYear)
 	})
 
 	logger.Info("Server started",

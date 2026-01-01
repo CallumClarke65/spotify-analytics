@@ -7,6 +7,18 @@ import (
 	"time"
 )
 
+// PingResponse godoc
+// @Description Response for ping endpoint
+// @name PingResponse
+type PingResponse struct {
+	Time     string           `json:"time"`
+	MemStats MemStatsResponse `json:"mem_stats"`
+	Status   string           `json:"status"`
+}
+
+// MemStatsResponse godoc
+// @Description Go runtime memory stats
+// @name MemStatsResponse
 type MemStatsResponse struct {
 	Alloc      uint64 `json:"alloc_bytes"`
 	TotalAlloc uint64 `json:"total_alloc_bytes"`
@@ -16,12 +28,13 @@ type MemStatsResponse struct {
 	NumGC      uint32 `json:"num_gc"`
 }
 
-type PingResponse struct {
-	Time     string           `json:"time"`
-	MemStats MemStatsResponse `json:"mem_stats"`
-	Status   string           `json:"status"`
-}
-
+// Ping godoc
+// @Summary Ping / health check
+// @Description Returns service health and Go runtime memory statistics
+// @Tags health
+// @Produce json
+// @Success 200 {object} PingResponse
+// @Router /ping [get]
 func Ping(w http.ResponseWriter, r *http.Request) {
 
 	var m runtime.MemStats

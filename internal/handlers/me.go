@@ -7,6 +7,16 @@ import (
 	"github.com/CallumClarke65/spotify-analytics/internal/spotifyauth"
 )
 
+// Me godoc
+// @Summary Get current Spotify user
+// @Description Returns information about the currently authenticated Spotify user
+// @Tags user
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Spotify user info"
+// @Failure 401 {string} string "Spotify client missing in context"
+// @Failure 500 {string} string "Failed to fetch Spotify user"
+// @Security ApiKeyAuth
+// @Router /me [get]
 func Me(w http.ResponseWriter, r *http.Request) {
 	client := spotifyauth.ClientFromContext(r.Context())
 	if client == nil {

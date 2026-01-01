@@ -13,10 +13,22 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
+// YearAnalysisRequestBody godoc
+// @Description Request body for performing a full year analysis (on playlists, liked songs, suggestions)
+// @name YearAnalysisRequestBody
 type YearAnalysisRequestBody struct {
 	IgnoredPlaylistNameSubstrings []string `json:"ignoredPlaylistNameSubstrings"`
 	SaveObject                    bool     `json:"saveObject"`
 	MakePlaylists                 bool     `json:"makePlaylists"`
+}
+
+// YearAnalysisResponse godoc
+// @Description Response from YearAnalysis endpoint
+// @name YearAnalysisResponse
+type YearAnalysisResponse struct {
+	OnPlaylists []services.TrackInfo `json:"on_playlists"`
+	Liked       []services.TrackInfo `json:"liked"`
+	Suggestions []services.TrackInfo `json:"suggestions"`
 }
 
 func (b YearAnalysisRequestBody) GetSaveObject() bool {
@@ -179,3 +191,20 @@ var YearAnalysis = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		"suggestions":  suggestions,
 	})
 })
+
+// YearAnalysisHandler godoc
+// @Summary Perform full year analysis
+// @Description Combines tracks from playlists and liked songs, fetches suggestions, optionally saves JSON, and optionally creates Spotify playlists.
+// @Tags year
+// @Accept json
+// @Produce json
+// @Param year path int true "Year to analyze"
+// @Param body body YearAnalysisRequestBody true "Request body"
+// @Success 200 {object} YearAnalysisResponse
+// @Failure 400 {string} string "Invalid year or JSON body"
+// @Failure 500 {string} string "Failed to fetch tracks or create playlists"
+// @Security ApiKeyAuth
+// @Router /year/{year}/analysis [post]
+func YearAnalysisHandler(w http.ResponseWriter, r *http.Request) {
+	YearAnalysis(w, r)
+}

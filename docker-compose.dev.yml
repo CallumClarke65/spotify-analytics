@@ -9,6 +9,6 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-      - ./docs:/app/docs
+      - ./files:/app/files
     ports:
       - "8080:8080"

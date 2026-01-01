@@ -11,11 +11,11 @@ import (
 
 func WriteJsonObjectToFile(obj interface{}, filename string) error {
 
-	// Ensure the "docs" directory exists
-	err := os.MkdirAll("./docs", os.ModePerm)
+	// Ensure the "files" directory exists
+	err := os.MkdirAll("./files", os.ModePerm)
 
 	if err != nil {
-		zap.L().Error("failed to create docs directory", zap.Error(err))
+		zap.L().Error("failed to create files directory", zap.Error(err))
 		return err
 	}
 
@@ -23,7 +23,7 @@ func WriteJsonObjectToFile(obj interface{}, filename string) error {
 	if !strings.HasSuffix(filename, ".json") {
 		filename = fmt.Sprintf("%s.json", filename)
 	}
-	path := fmt.Sprintf("./docs/%s", filename)
+	path := fmt.Sprintf("./files/%s", filename)
 	file, err := os.Create(path)
 	if err != nil {
 		zap.L().Error("failed to save object", zap.Error(err))

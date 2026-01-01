@@ -1,15 +1,24 @@
+// @title Spotify Analytics API
+// @version 1.0
+// @description API for Spotify analytics
+// @host localhost:8080
+// @BasePath /
 package main
 
 import (
 	"net/http"
 	"time"
 
+	"go.uber.org/zap"
+
+	_ "github.com/CallumClarke65/spotify-analytics/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
+
 	"github.com/CallumClarke65/spotify-analytics/internal/handlers"
 	yearHandlers "github.com/CallumClarke65/spotify-analytics/internal/handlers/year"
 	"github.com/CallumClarke65/spotify-analytics/internal/spotifyauth"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"go.uber.org/zap"
 )
 
 type ZapLogFormatter struct{}
@@ -66,15 +75,19 @@ func main() {
 	r.Get("/login", spotifyauth.LoginHandler)
 	r.Get("/callback", spotifyauth.CallbackHandler)
 
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+
 	r.Group(func(r chi.Router) {
 		r.Use(spotifyauth.SpotifyAuthMiddleware)
 
 		r.Get("/me", handlers.Me)
 
-		r.Post("/year/{year}/songsFromPlaylists", yearHandlers.SongsOnPlaylistsFromYear)
-		r.Post("/year/{year}/likedSongs", yearHandlers.LikedSongsFromYear)
-		r.Post("/year/{year}/suggestions", yearHandlers.SuggestionsFromYear)
-		r.Post("/year/{year}/analysis", yearHandlers.YearAnalysis)
+		r.Post("/year/{year}/songsFromPlaylists", yearHandlers.SongsOnPlaylistsFromYearHandler)
+		r.Post("/year/{year}/likedSongs", yearHandlers.LikedSongsFromYearHandler)
+		r.Post("/year/{year}/suggestions", yearHandlers.SuggestionsFromYearHandler)
+		r.Post("/year/{year}/analysis", yearHandlers.YearAnalysisHandler)
 	})
 
 	logger.Info("Server started",

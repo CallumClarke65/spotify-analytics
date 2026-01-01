@@ -8,6 +8,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// TrackInfo godoc
+// @Description Short track info returned by year endpoints
+// @name TrackInfo
 type TrackInfo struct {
 	TrackID     string   `json:"track_id"`
 	TrackName   string   `json:"track_name"`

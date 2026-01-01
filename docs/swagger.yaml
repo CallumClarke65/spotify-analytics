@@ -1,0 +1,300 @@
+basePath: /
+definitions:
+  handlers.MemStatsResponse:
+    description: Go runtime memory stats
+    properties:
+      alloc_bytes:
+        type: integer
+      heap_alloc_bytes:
+        type: integer
+      heap_sys_bytes:
+        type: integer
+      num_gc:
+        type: integer
+      sys_bytes:
+        type: integer
+      total_alloc_bytes:
+        type: integer
+    type: object
+  handlers.PingResponse:
+    description: Response for ping endpoint
+    properties:
+      mem_stats:
+        $ref: '#/definitions/handlers.MemStatsResponse'
+      status:
+        type: string
+      time:
+        type: string
+    type: object
+  services.TrackInfo:
+    description: Short track info returned by year endpoints
+    properties:
+      album_name:
+        type: string
+      artists:
+        items:
+          type: string
+        type: array
+      popularity:
+        type: integer
+      release_date:
+        type: string
+      track_id:
+        type: string
+      track_name:
+        type: string
+    type: object
+  yearHandlers.LikedSongsBody:
+    description: Body for fetching liked songs
+    properties:
+      saveObject:
+        type: boolean
+    type: object
+  yearHandlers.SongsOnPlaylistsFromYearRequestBody:
+    description: Request body for fetching tracks from playlists filtered by year
+    properties:
+      ignoredPlaylistNameSubstrings:
+        items:
+          type: string
+        type: array
+      saveObject:
+        type: boolean
+    type: object
+  yearHandlers.SuggestionsFromYearRequestBody:
+    description: Body for fetching suggested tracks from a year
+    properties:
+      saveObject:
+        type: boolean
+    type: object
+  yearHandlers.YearAnalysisRequestBody:
+    description: Request body for performing a full year analysis (on playlists, liked
+      songs, suggestions)
+    properties:
+      ignoredPlaylistNameSubstrings:
+        items:
+          type: string
+        type: array
+      makePlaylists:
+        type: boolean
+      saveObject:
+        type: boolean
+    type: object
+  yearHandlers.YearAnalysisResponse:
+    description: Response from YearAnalysis endpoint
+    properties:
+      liked:
+        items:
+          $ref: '#/definitions/services.TrackInfo'
+        type: array
+      on_playlists:
+        items:
+          $ref: '#/definitions/services.TrackInfo'
+        type: array
+      suggestions:
+        items:
+          $ref: '#/definitions/services.TrackInfo'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for Spotify analytics
+  title: Spotify Analytics API
+  version: "1.0"
+paths:
+  /me:
+    get:
+      description: Returns information about the currently authenticated Spotify user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Spotify user info
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Spotify client missing in context
+          schema:
+            type: string
+        "500":
+          description: Failed to fetch Spotify user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get current Spotify user
+      tags:
+      - user
+  /ping:
+    get:
+      description: Returns service health and Go runtime memory statistics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.PingResponse'
+      summary: Ping / health check
+      tags:
+      - health
+  /year/{year}/analysis:
+    post:
+      consumes:
+      - application/json
+      description: Combines tracks from playlists and liked songs, fetches suggestions,
+        optionally saves JSON, and optionally creates Spotify playlists.
+      parameters:
+      - description: Year to analyze
+        in: path
+        name: year
+        required: true
+        type: integer
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/yearHandlers.YearAnalysisRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/yearHandlers.YearAnalysisResponse'
+        "400":
+          description: Invalid year or JSON body
+          schema:
+            type: string
+        "500":
+          description: Failed to fetch tracks or create playlists
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Perform full year analysis
+      tags:
+      - year
+  /year/{year}/likedSongs:
+    post:
+      consumes:
+      - application/json
+      description: Returns a list of liked tracks filtered by year. Optionally saves
+        the results if SaveObject=true.
+      parameters:
+      - description: Year to filter by
+        in: path
+        name: year
+        required: true
+        type: integer
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/yearHandlers.LikedSongsBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/services.TrackInfo'
+            type: array
+        "400":
+          description: Invalid year or JSON body
+          schema:
+            type: string
+        "500":
+          description: Failed to fetch tracks
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get liked songs from a specific year
+      tags:
+      - year
+  /year/{year}/songsFromPlaylists:
+    post:
+      consumes:
+      - application/json
+      description: Returns tracks from all playlists, excluding ones with ignored
+        substrings. Optionally saves results if SaveObject=true.
+      parameters:
+      - description: Year to filter by
+        in: path
+        name: year
+        required: true
+        type: integer
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/yearHandlers.SongsOnPlaylistsFromYearRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/services.TrackInfo'
+            type: array
+        "400":
+          description: Invalid year or JSON body
+          schema:
+            type: string
+        "500":
+          description: Failed to fetch tracks
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get tracks from user playlists filtered by year
+      tags:
+      - year
+  /year/{year}/suggestions:
+    post:
+      consumes:
+      - application/json
+      description: Returns a list of suggested tracks for the given year. Optionally
+        saves results if SaveObject=true.
+      parameters:
+      - description: Year to get suggestions for
+        in: path
+        name: year
+        required: true
+        type: integer
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/yearHandlers.SuggestionsFromYearRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/services.TrackInfo'
+            type: array
+        "400":
+          description: Invalid year or JSON body
+          schema:
+            type: string
+        "500":
+          description: Failed to fetch tracks
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get suggested tracks from a specific year
+      tags:
+      - year
+swagger: "2.0"

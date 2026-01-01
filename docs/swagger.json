@@ -1,0 +1,455 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API for Spotify analytics",
+        "title": "Spotify Analytics API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/me": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns information about the currently authenticated Spotify user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get current Spotify user",
+                "responses": {
+                    "200": {
+                        "description": "Spotify user info",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Spotify client missing in context",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch Spotify user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping": {
+            "get": {
+                "description": "Returns service health and Go runtime memory statistics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Ping / health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.PingResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/year/{year}/analysis": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Combines tracks from playlists and liked songs, fetches suggestions, optionally saves JSON, and optionally creates Spotify playlists.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "year"
+                ],
+                "summary": "Perform full year analysis",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Year to analyze",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/yearHandlers.YearAnalysisRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/yearHandlers.YearAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid year or JSON body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch tracks or create playlists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/year/{year}/likedSongs": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a list of liked tracks filtered by year. Optionally saves the results if SaveObject=true.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "year"
+                ],
+                "summary": "Get liked songs from a specific year",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Year to filter by",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/yearHandlers.LikedSongsBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/services.TrackInfo"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid year or JSON body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch tracks",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/year/{year}/songsFromPlaylists": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns tracks from all playlists, excluding ones with ignored substrings. Optionally saves results if SaveObject=true.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "year"
+                ],
+                "summary": "Get tracks from user playlists filtered by year",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Year to filter by",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/yearHandlers.SongsOnPlaylistsFromYearRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/services.TrackInfo"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid year or JSON body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch tracks",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/year/{year}/suggestions": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a list of suggested tracks for the given year. Optionally saves results if SaveObject=true.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "year"
+                ],
+                "summary": "Get suggested tracks from a specific year",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Year to get suggestions for",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/yearHandlers.SuggestionsFromYearRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/services.TrackInfo"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid year or JSON body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch tracks",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.MemStatsResponse": {
+            "description": "Go runtime memory stats",
+            "type": "object",
+            "properties": {
+                "alloc_bytes": {
+                    "type": "integer"
+                },
+                "heap_alloc_bytes": {
+                    "type": "integer"
+                },
+                "heap_sys_bytes": {
+                    "type": "integer"
+                },
+                "num_gc": {
+                    "type": "integer"
+                },
+                "sys_bytes": {
+                    "type": "integer"
+                },
+                "total_alloc_bytes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.PingResponse": {
+            "description": "Response for ping endpoint",
+            "type": "object",
+            "properties": {
+                "mem_stats": {
+                    "$ref": "#/definitions/handlers.MemStatsResponse"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.TrackInfo": {
+            "description": "Short track info returned by year endpoints",
+            "type": "object",
+            "properties": {
+                "album_name": {
+                    "type": "string"
+                },
+                "artists": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "popularity": {
+                    "type": "integer"
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "track_id": {
+                    "type": "string"
+                },
+                "track_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "yearHandlers.LikedSongsBody": {
+            "description": "Body for fetching liked songs",
+            "type": "object",
+            "properties": {
+                "saveObject": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "yearHandlers.SongsOnPlaylistsFromYearRequestBody": {
+            "description": "Request body for fetching tracks from playlists filtered by year",
+            "type": "object",
+            "properties": {
+                "ignoredPlaylistNameSubstrings": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "saveObject": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "yearHandlers.SuggestionsFromYearRequestBody": {
+            "description": "Body for fetching suggested tracks from a year",
+            "type": "object",
+            "properties": {
+                "saveObject": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "yearHandlers.YearAnalysisRequestBody": {
+            "description": "Request body for performing a full year analysis (on playlists, liked songs, suggestions)",
+            "type": "object",
+            "properties": {
+                "ignoredPlaylistNameSubstrings": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "makePlaylists": {
+                    "type": "boolean"
+                },
+                "saveObject": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "yearHandlers.YearAnalysisResponse": {
+            "description": "Response from YearAnalysis endpoint",
+            "type": "object",
+            "properties": {
+                "liked": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.TrackInfo"
+                    }
+                },
+                "on_playlists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.TrackInfo"
+                    }
+                },
+                "suggestions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.TrackInfo"
+                    }
+                }
+            }
+        }
+    }
+}

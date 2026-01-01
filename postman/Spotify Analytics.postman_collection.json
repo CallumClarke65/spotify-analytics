@@ -8,6 +8,51 @@
 	},
 	"item": [
 		{
+			"name": "Graphs",
+			"item": [
+				{
+					"name": "/graphs/topTracks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/graphs/topTracksByYear?time_range=long_term",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphs",
+								"topTracksByYear"
+							],
+							"query": [
+								{
+									"key": "time_range",
+									"value": "long_term"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "/me",
 			"event": [
 				{
@@ -45,213 +90,6 @@
 					"path": [
 						"songsFromPlaylists",
 						"2025"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "/year/2025/songsFromPlaylists",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"var jsonData = pm.response.json();\r",
-							"\r",
-							"pm.test(\"Response status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains only tracks released in 2025\", function () {\r",
-							"    jsonData.forEach(track => {\r",
-							"        pm.expect(track.release_date.startsWith('2025')).to.be.true;\r",
-							"    });\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains full details of each track\", function () {\r",
-							"    jsonData.forEach(track => {\r",
-							"        pm.expect(track.track_id).to.not.be.undefined;\r",
-							"        pm.expect(track.track_name).to.not.be.undefined;\r",
-							"        pm.expect(track.artists).to.not.be.undefined;\r",
-							"        pm.expect(track.artists.length).to.be.greaterThan(0);\r",
-							"        pm.expect(track.album_name).to.not.be.undefined;\r",
-							"        pm.expect(track.release_date).to.not.be.undefined;\r",
-							"    })\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains no duplicate tracks\", function () {  \r",
-							"    let trackIds = jsonData.map(track => track.track_id);\r",
-							"    let uniqueTrackIds = new Set(trackIds);\r",
-							"    \r",
-							"    pm.expect(uniqueTrackIds.size).to.eql(trackIds.length);\r",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"ignoredPlaylistNameSubstrings\": [\r\n        \"Anyway here's Wonderwall\",\r\n        \"Go on then Nath, let's hear it\",\r\n        \"Glenn Wedding Join-ins\",\r\n        \"Addersons 25\",\r\n        \"Harry Styles Anthology\",\r\n        \"Kylie Minogue Anthology\",\r\n        \"Peter Gabriel Anthology\",\r\n        \"Jack White Anthology\",\r\n        \"Julian Casablancas Anthology\",\r\n        \"John Frusciante Anthology\",\r\n        \"Dave Grohl Anthology\",\r\n        \"Damon Albarn Anthology\",\r\n        \"Paul McCartney Anthology\",\r\n        \"Alex Turner Anothology\",\r\n        \"Theo Katzman Anthology\",\r\n        \"Josh Homme Anthology\",\r\n        \"Glenn Wedding Addersons Long-list\",\r\n        \"Addersons Setlist\",\r\n        \"Inter-set music\",\r\n        \"Adders80ns\",\r\n        \"Baby shower\",\r\n        \"Addersons Matt & Rachel wedding setlist\",\r\n        \"Inter Set Music\",\r\n        \"Matt & Rachel Wedding Setlist\",\r\n        \"PPC Sat 27th May 2023\",\r\n        \"New Year 23'/24'\",\r\n        \"Pete 60th drive\",\r\n        \"Budapest 2018\",\r\n        \"Ukraine 2018\",\r\n        \"Redwood Christmas Party 2018\",\r\n        \"Kiev 2019\",\r\n        \"Engagement Party\",\r\n        \"Glenn's 23rd Bday\",\r\n        \"Redwood Christmas Party 2019\",\r\n        \"NYE2019\",\r\n        \"Drive To Wales '20\",\r\n        \"Bar\",\r\n        \"Ambient\",\r\n        \"Top 10 Christmas Songs\",\r\n        \"Eurovision roadtrip\",\r\n        \"Redrock 21\",\r\n        \"Christmas Party 21 Suggestions\",\r\n        \"Cal “Housewarming “ BBQ\",\r\n        \"Drive to Wales '22\",\r\n        \"Housewarming 2022\",\r\n        \"RedRock 22\",\r\n        \"SETI\",\r\n        \"PrMattctice (& Rachel)\",\r\n        \"Curry\",\r\n        \"Aviation\",\r\n        \"Roast  chicken\",\r\n        \"Wingspan\",\r\n        \"Terraforming Mars\",\r\n        \"Shrek: The Gig\",\r\n        \"Hot hot burny burny\",\r\n        \"Wine\",\r\n        \"Gingerbread\",\r\n        \"Friday Night\",\r\n        \"Pizza\",\r\n        \"The New Addersons\",\r\n        \"Intro Quiz\",\r\n        \"Listen Later\"\r\n    ],\r\n    \"saveObject\": true\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{baseUrl}}/year/2025/songsFromPlaylists",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"year",
-						"2025",
-						"songsFromPlaylists"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "/year/2025/likedSongs",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"var jsonData = pm.response.json();\r",
-							"\r",
-							"pm.test(\"Response status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains only tracks released in 2025\", function () {\r",
-							"    jsonData.forEach(track => {\r",
-							"        pm.expect(track.release_date.startsWith('2025')).to.be.true;\r",
-							"    });\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains full details of each track\", function () {\r",
-							"    jsonData.forEach(track => {\r",
-							"        pm.expect(track.track_id).to.not.be.undefined;\r",
-							"        pm.expect(track.track_name).to.not.be.undefined;\r",
-							"        pm.expect(track.artists).to.not.be.undefined;\r",
-							"        pm.expect(track.artists.length).to.be.greaterThan(0);\r",
-							"        pm.expect(track.album_name).to.not.be.undefined;\r",
-							"        pm.expect(track.release_date).to.not.be.undefined;\r",
-							"    })\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains no duplicate tracks\", function () {  \r",
-							"    let trackIds = jsonData.map(track => track.track_id);\r",
-							"    let uniqueTrackIds = new Set(trackIds);\r",
-							"    \r",
-							"    pm.expect(uniqueTrackIds.size).to.eql(trackIds.length);\r",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"saveObject\": true\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{baseUrl}}/year/2025/likedSongs",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"year",
-						"2025",
-						"likedSongs"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "/year/2025/suggetions",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"var jsonData = pm.response.json();\r",
-							"\r",
-							"pm.test(\"Response status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains only tracks released in 2025\", function () {\r",
-							"    jsonData.forEach(track => {\r",
-							"        pm.expect(track.release_date.startsWith('2025')).to.be.true;\r",
-							"    });\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains full details of each track\", function () {\r",
-							"    jsonData.forEach(track => {\r",
-							"        pm.expect(track.track_id).to.not.be.undefined;\r",
-							"        pm.expect(track.track_name).to.not.be.undefined;\r",
-							"        pm.expect(track.artists).to.not.be.undefined;\r",
-							"        pm.expect(track.artists.length).to.be.greaterThan(0);\r",
-							"        pm.expect(track.album_name).to.not.be.undefined;\r",
-							"        pm.expect(track.release_date).to.not.be.undefined;\r",
-							"    })\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response body contains no duplicate tracks\", function () {  \r",
-							"    let trackIds = jsonData.map(track => track.track_id);\r",
-							"    let uniqueTrackIds = new Set(trackIds);\r",
-							"    \r",
-							"    pm.expect(uniqueTrackIds.size).to.eql(trackIds.length);\r",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"saveObject\": true\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{baseUrl}}/year/2025/suggestions",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"year",
-						"2025",
-						"suggestions"
 					]
 				}
 			},

@@ -15,6 +15,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/CallumClarke65/spotify-analytics/internal/handlers"
+	graphHandlers "github.com/CallumClarke65/spotify-analytics/internal/handlers/graphs"
 	yearHandlers "github.com/CallumClarke65/spotify-analytics/internal/handlers/year"
 	"github.com/CallumClarke65/spotify-analytics/internal/spotifyauth"
 	"github.com/go-chi/chi/v5"
@@ -88,6 +89,8 @@ func main() {
 		r.Post("/year/{year}/likedSongs", yearHandlers.LikedSongsFromYearHandler)
 		r.Post("/year/{year}/suggestions", yearHandlers.SuggestionsFromYearHandler)
 		r.Post("/year/{year}/analysis", yearHandlers.YearAnalysisHandler)
+
+		r.Get("/graphs/topTracksByYear", graphHandlers.GetTopTracksByYearHandler)
 	})
 
 	logger.Info("Server started",

@@ -9,33 +9,26 @@ import (
 	"go.uber.org/zap"
 )
 
-func GetTopTracksByYearHandler(w http.ResponseWriter, r *http.Request) {
+func GetPlaylistTracksYearGraphHandler(w http.ResponseWriter, r *http.Request) {
 	client := spotifyauth.ClientFromContext(r.Context())
 	if client == nil {
 		http.Error(w, `{"error":"Spotify client missing in context"}`, http.StatusUnauthorized)
 		return
 	}
 
-	timeRangeStr := r.URL.Query().Get("time_range")
-	if timeRangeStr == "" {
-		http.Error(w, `{"error":"time_range is required"}`, http.StatusBadRequest)
+	playlistId := r.URL.Query().Get("playlist_id")
+	if playlistId == "" {
+		http.Error(w, `{"error":"playlist_id is required"}`, http.StatusBadRequest)
 		return
 	}
 
-	var timeRange spotify.Range
-	switch timeRangeStr {
-	case "short_term":
-		timeRange = spotify.ShortTermRange
-	case "medium_term":
-		timeRange = spotify.MediumTermRange
-	case "long_term":
-		timeRange = spotify.LongTermRange
-	default:
-		http.Error(w, `{"error":"invalid time_range"}`, http.StatusBadRequest)
+	playlist, err := client.GetPlaylist(r.Context(), spotify.ID(playlistId))
+	if err != nil {
+		http.Error(w, `{"error":"playlist with id `+playlistId+` not found"}`, http.StatusNotFound)
 		return
 	}
 
-	tracks, err := services.GetTopTracks(r.Context(), client, timeRange)
+	tracks, err := services.GetAllPlaylistTracks(r.Context(), client, playlist.SimplePlaylist)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusInternalServerError)
 		return
@@ -45,8 +38,8 @@ func GetTopTracksByYearHandler(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		client,
 		tracks,
-		spotifyauth.UserNameFromContext(r.Context())+"'s Top Tracks - "+timeRangeStr,
-		25,
+		playlist.Name+" - Tracks by Year",
+		5,
 	)
 
 	if err != nil {

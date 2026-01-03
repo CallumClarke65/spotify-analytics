@@ -91,6 +91,7 @@ func main() {
 		r.Post("/year/{year}/analysis", yearHandlers.YearAnalysisHandler)
 
 		r.Get("/graphs/topTracksByYear", graphHandlers.GetTopTracksByYearHandler)
+		r.Get("/graphs/topTrackHeatmap", graphHandlers.GetTopTracksYearPopularityHeatmapHandler)
 		r.Get("/graphs/playlistTracksByYear", graphHandlers.GetPlaylistTracksYearGraphHandler)
 	})
 

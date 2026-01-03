@@ -34,7 +34,7 @@ func GetPlaylistTracksYearGraphHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buf, err := services.GraphTracksByYear(
+	buf, err := services.BarChartTracksByYear(
 		r.Context(),
 		client,
 		tracks,
